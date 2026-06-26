@@ -22,10 +22,11 @@ Chrome's current security model requires remote debugging to use a non-default `
 git clone https://github.com/rweltens1978/glasswing.git
 cd glasswing
 npm run check
-./bin/glasswing.js launch --port 9223 --url about:blank
-./bin/glasswing.js goto http://localhost:3000/sign-in
-./bin/glasswing.js fill email user@example.com
-./bin/glasswing.js screenshot screenshots/login.png
+npm link
+glasswing launch --port 9223 --url about:blank
+glasswing goto http://localhost:3000/sign-in
+glasswing fill email user@example.com
+glasswing screenshot screenshots/login.png
 ```
 
 Optional local install:
@@ -34,6 +35,28 @@ Optional local install:
 npm link
 glasswing doctor
 ```
+
+## Using Glasswing from Codex or Other Agents
+
+Use Glasswing through the normal shell/terminal command runner, not through a Node REPL, Playwright, MCP browser bridge, or embedded browser tool.
+
+Good:
+
+```bash
+glasswing doctor
+glasswing launch --port 9333 --profile /tmp/glasswing-chrome --url about:blank
+glasswing goto http://localhost:3000/sign-in --port 9333
+```
+
+If an agent reports an error like this, it is diagnosing the wrong path:
+
+```text
+codex/sandbox-state-meta: sandboxCwd must be an absolute file URI
+```
+
+That error comes from the agent's Node REPL/tool metadata before browser automation runs. Glasswing does not use that path. Run `glasswing ...` via the shell instead.
+
+Glasswing also does not require Playwright. It uses Node's built-in `fetch` and `WebSocket` APIs to speak CDP directly.
 
 ## Commands
 
@@ -76,6 +99,7 @@ glasswing screenshot screenshots/login.png --port 9333
 - Keep the debugging port bound to `127.0.0.1`; do not expose it on the tailnet.
 - The separate profile is deliberate. It avoids Chrome's default-profile remote-debugging restrictions and keeps automation cookies isolated.
 - If Chrome cannot launch from SSH, log into the Mac mini's desktop once via Screen Sharing or the physical display, then rerun `glasswing launch` from tmux.
+- If `glasswing` is not found, use the absolute path to the script or run `npm link` from the repo checkout.
 
 ## References
 
