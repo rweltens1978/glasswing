@@ -29,6 +29,24 @@ Or use the script directly:
 
 Playwright is not required. Glasswing speaks Chrome DevTools Protocol directly using Node's built-in `fetch` and `WebSocket`.
 
+## `glasswing open` or `glasswing pages` says `fetch failed`
+
+First check whether Chrome's DevTools HTTP endpoint is actually reachable:
+
+```bash
+curl -sS http://127.0.0.1:9333/json/version
+curl -sS http://127.0.0.1:9333/json/list
+```
+
+If curl works but Glasswing fails, make sure you are running the current CLI:
+
+```bash
+which glasswing
+glasswing doctor --port 9333
+```
+
+Recent Glasswing versions include clearer fetch error messages and fall back to the browser WebSocket for target creation/listing when Chrome's `/json/new` or `/json/list` HTTP endpoints are temporarily unreliable.
+
 ## The agent says Chrome needs an escalated GUI path
 
 Usually it does not. On macOS with an unlocked desktop user session, Glasswing can launch Chrome directly from tmux:
