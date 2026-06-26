@@ -1,0 +1,33 @@
+{
+  "name": "glasswing",
+  "version": "0.1.0",
+  "description": "tmux-safe macOS Chrome verification over the Chrome DevTools Protocol",
+  "type": "module",
+  "homepage": "https://github.com/rweltens1978/glasswing#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rweltens1978/glasswing.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rweltens1978/glasswing/issues"
+  },
+  "bin": {
+    "glasswing": "./bin/glasswing.js"
+  },
+  "scripts": {
+    "check": "node --check bin/glasswing.js && node --check lib/cdp.js && node --check lib/commands.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "chrome",
+    "cdp",
+    "tmux",
+    "browser-automation",
+    "devtools-protocol",
+    "macos"
+  ],
+  "author": "Ronny Weltens",
+  "license": "MIT"
+}
