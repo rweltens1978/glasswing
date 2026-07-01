@@ -11,6 +11,7 @@ import {
   pages,
   parseArgs,
   ping,
+  profilePath,
   screenshot,
   state,
   text,
@@ -21,7 +22,8 @@ const help = `Glasswing - tmux-safe Chrome verification for Codex
 
 Usage:
   glasswing doctor [--port 9223]
-  glasswing launch [--port 9223] [--profile /tmp/glasswing-chrome] [--url about:blank]
+  glasswing launch [--port 9223] [--profile-name default] [--profile /path/to/profile] [--url about:blank]
+  glasswing profile-path [name]
   glasswing ensure [--port 9223]
   glasswing pages
   glasswing open <url>
@@ -37,7 +39,9 @@ Usage:
 
 Environment:
   GLASSWING_PORT      default Chrome DevTools port, defaults to 9223
-  GLASSWING_PROFILE   separate Chrome profile, defaults to /tmp/glasswing-chrome
+  GLASSWING_PROFILE_NAME named persistent profile, defaults to default
+  GLASSWING_PROFILE   explicit non-default Chrome profile path
+  GLASSWING_PROFILES_ROOT profile root, defaults to ~/Library/Application Support/Glasswing/Chrome Profiles
   GLASSWING_CHROME    Chrome executable path
 `;
 
@@ -50,6 +54,8 @@ async function main() {
       return doctor(args);
     case "launch":
       return launch(args);
+    case "profile-path":
+      return profilePath(args);
     case "ensure":
       return ensureRunning(args);
     case "pages":

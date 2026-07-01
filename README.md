@@ -9,12 +9,13 @@ It is intentionally small:
 - no dependency on any embedded browser
 - no npm packages required
 - works from SSH/tmux as long as the Mac has an unlocked Aqua user session
+- keeps cookies in a named persistent Glasswing profile by default
 
 ## Why this exists
 
 When an agent runs inside tmux, embedded browser verification can be unavailable or blocked. A separately launched Chrome with CDP stays reachable from terminal sessions, so agents can still navigate, inspect DOM text, fill fields, click buttons, and capture screenshots.
 
-Chrome's current security model requires remote debugging to use a non-default `--user-data-dir`, so Glasswing always launches with a dedicated profile directory.
+Chrome's current security model requires remote debugging to use a non-default `--user-data-dir`, so Glasswing launches with a dedicated profile directory. That profile is persistent, so you can log in once and reuse the cookies in later tmux sessions.
 
 ## Quick Start
 
@@ -62,7 +63,8 @@ Glasswing also does not require Playwright. It uses Node's built-in `fetch` and 
 
 ```bash
 glasswing doctor
-glasswing launch --port 9223 --profile /tmp/glasswing-chrome --url about:blank
+glasswing launch --port 9223 --profile-name default --url about:blank
+glasswing profile-path [name]
 glasswing ensure
 glasswing pages
 glasswing open <url>
@@ -81,7 +83,7 @@ glasswing screenshot [output.png]
 Start a dedicated Chrome session:
 
 ```bash
-glasswing launch --port 9333 --profile /tmp/glasswing-chrome --url about:blank
+glasswing launch --port 9333 --profile-name work --url about:blank
 ```
 
 Open a local app, fill an email field, and capture proof:
@@ -94,10 +96,48 @@ glasswing state --port 9333
 glasswing screenshot screenshots/login.png --port 9333
 ```
 
+Use the same logged-in browser profile later:
+
+```bash
+glasswing launch --port 9333 --profile-name work --url about:blank
+glasswing open https://admin.shopify.com --port 9333
+```
+
+Show where a named profile lives:
+
+```bash
+glasswing profile-path work
+```
+
+## Standard Chrome Profile and Playwright
+
+Glasswing cannot reliably attach to Chrome's normal day-to-day profile. Chrome 136+ intentionally ignores `--remote-debugging-port` and `--remote-debugging-pipe` when they target the default Chrome data directory, and sharing a live profile with automation can corrupt state.
+
+Use a persistent Glasswing profile instead:
+
+```bash
+glasswing launch --port 9333 --profile-name personal --url https://admin.shopify.com
+```
+
+Log in once in that Chrome window. Future sessions using `--profile-name personal` reuse those cookies.
+
+Playwright can attach to Glasswing's Chrome endpoint:
+
+```ts
+import { chromium } from "playwright";
+
+const browser = await chromium.connectOverCDP("http://127.0.0.1:9333");
+const context = browser.contexts()[0];
+const page = context.pages()[0] ?? await context.newPage();
+await page.goto("http://localhost:3000");
+```
+
+That gives Playwright automation over the same persistent Glasswing profile.
+
 ## Notes
 
 - Keep the debugging port bound to `127.0.0.1`; do not expose it on the tailnet.
-- The separate profile is deliberate. It avoids Chrome's default-profile remote-debugging restrictions and keeps automation cookies isolated.
+- The separate profile is deliberate. It avoids Chrome's default-profile remote-debugging restrictions while still keeping cookies between sessions.
 - If Chrome cannot launch from SSH, log into the Mac mini's desktop once via Screen Sharing or the physical display, then rerun `glasswing launch` from tmux.
 - If `glasswing` is not found, use the absolute path to the script or run `npm link` from the repo checkout.
 

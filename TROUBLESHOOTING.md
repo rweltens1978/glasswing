@@ -47,6 +47,8 @@ glasswing doctor --port 9333
 
 Recent Glasswing versions include clearer fetch error messages and fall back to the browser WebSocket for target creation/listing when Chrome's `/json/new` or `/json/list` HTTP endpoints are temporarily unreliable.
 
+If the detailed error contains `connect EPERM 127.0.0.1:<port>`, the current agent sandbox is blocking local TCP sockets for Node. Run Glasswing through the normal shell command path with local-network permission, or approve the command in that agent session.
+
 ## The agent says Chrome needs an escalated GUI path
 
 Usually it does not. On macOS with an unlocked desktop user session, Glasswing can launch Chrome directly from tmux:
@@ -56,6 +58,30 @@ glasswing launch --port 9333 --profile /tmp/glasswing-chrome --url about:blank
 ```
 
 If macOS refuses to launch a GUI app from SSH/tmux, log into the desktop once through Screen Sharing or a physical display, then rerun the command.
+
+## Can Glasswing use my normal Chrome profile?
+
+Not reliably. Chrome 136+ ignores remote-debugging switches when they target the default Chrome data directory, and driving the same profile that your normal Chrome app is already using can corrupt browser state.
+
+Use a named persistent Glasswing profile instead:
+
+```bash
+glasswing launch --port 9333 --profile-name personal --url https://admin.shopify.com
+```
+
+Log in once in that window. Future launches with `--profile-name personal` reuse those cookies.
+
+## Can Playwright use the Glasswing browser?
+
+Yes. Start Glasswing, then connect Playwright over CDP:
+
+```ts
+import { chromium } from "playwright";
+
+const browser = await chromium.connectOverCDP("http://127.0.0.1:9333");
+const context = browser.contexts()[0];
+const page = context.pages()[0] ?? await context.newPage();
+```
 
 ## Check the local setup
 
